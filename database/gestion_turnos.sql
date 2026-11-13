@@ -424,3 +424,13 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-09-29 20:01:05
+
+-- Tablas de autenticacion y perfiles (Administrador, Paciente y Medico)
+DROP TABLE IF EXISTS token_cuenta;
+DROP TABLE IF EXISTS usuario;
+DROP TABLE IF EXISTS rol;
+CREATE TABLE rol (id_rol int NOT NULL AUTO_INCREMENT, nombre varchar(50) NOT NULL, PRIMARY KEY (id_rol), UNIQUE KEY nombre (nombre)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+INSERT INTO rol (id_rol, nombre) VALUES (1, 'ADMIN'), (2, 'PACIENTE'), (3, 'MEDICO');
+CREATE TABLE usuario (id_usuario int NOT NULL AUTO_INCREMENT, email varchar(150) NOT NULL, password_hash varchar(255) NOT NULL, id_rol int NOT NULL DEFAULT 2, email_verificado tinyint(1) NOT NULL DEFAULT 0, dni_paciente int DEFAULT NULL, matricula_medico int DEFAULT NULL, fecha_creacion datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id_usuario), UNIQUE KEY email (email), KEY fk_usuario_rol (id_rol), CONSTRAINT fk_usuario_rol FOREIGN KEY (id_rol) REFERENCES rol (id_rol)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+INSERT INTO usuario (id_usuario, email, password_hash, id_rol, email_verificado, dni_paciente, matricula_medico) VALUES (1, 'admin@ejemplo.com', '$2b$12$/CkXZDRwCwYhUvJxYxtAT.MlE/5s.8tXG4NtzAUzsx89065N17q0O', 1, 1, NULL, NULL), (2, 'juan.perez@gmail.com', '$2b$12$GfO5jhp.zB9igDjHLM/rleUxgx2o0BHx6bDXyFw0NhiczQWEaRGP2', 2, 1, 30100101, NULL), (3, 'medico@ejemplo.com', '$2b$12$YF9AfAspVVtsb9NisMBVdO.dlt.oWOzTa/rSTGYDQDfudfs2wfPjG', 3, 1, NULL, 1001);
+CREATE TABLE token_cuenta (id_token int NOT NULL AUTO_INCREMENT, id_usuario int NOT NULL, token_hash char(64) NOT NULL, tipo varchar(30) NOT NULL, fecha_expiracion datetime NOT NULL, usado tinyint(1) NOT NULL DEFAULT 0, fecha_creacion datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id_token), KEY fk_token_usuario (id_usuario), CONSTRAINT fk_token_usuario FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
