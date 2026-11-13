@@ -78,20 +78,26 @@ test('CRUD, validaciones nuevas, perfiles (Admin/Médico/Paciente) y mejoras fun
         registros.set(31, { id_turno: 31, ...datos, medio_solicitado: 'Web', estado_turno: 'Reservado' });
         assert.equal((await pedir('GET', '/31')).status, 200);
 
-        // Validación 1: Impedir fechas pasadas al crear o reprogramar
+        // Validación 1: Impedir fechas pasadas y horarios fuera de atención (Domingos cerrados, Lun-Vie 8-20, Sáb 8-14)
         assert.equal((await pedir('POST', '', { ...datos, fecha_turno: '2020-01-01' })).status, 400);
         assert.equal((await pedir('PATCH', '/31/reprogramar', { fecha_turno: '2020-01-01', hora_turno: '10:00' })).status, 400);
+        assert.equal((await pedir('POST', '', { ...datos, fecha_turno: '2027-10-24', hora_turno: '10:00' })).status, 400); // Domingo
+        assert.equal((await pedir('POST', '', { ...datos, fecha_turno: '2027-10-23', hora_turno: '15:00' })).status, 400); // Sábado > 14:00
+        assert.equal((await pedir('POST', '', { ...datos, fecha_turno: '2027-10-21', hora_turno: '07:30' })).status, 400); // Antes de 08:00
+        assert.equal((await pedir('POST', '', { ...datos, fecha_turno: '2027-10-21', hora_turno: '20:30' })).status, 400); // Después de 20:00
 
         // Validación 3: Impedir turnos superpuestos para el mismo paciente en la misma fecha y hora
         assert.equal((await pedir('POST', '', datos)).status, 400);
 
-        // Perfiles y Mejora funcional: Médico confirma y reprograma, pero no puede eliminar ni dar de alta
+        // Perfiles y Mejora funcional: Médico confirma y reprograma (si estaba Confirmado, vuelve a Reservado)
         assert.equal((await pedir('GET', '', undefined, tokenMedico)).status, 200);
         assert.equal((await pedir('PATCH', '/31/confirmar', {}, tokenMedico)).status, 200);
         assert.equal(registros.get(31).estado_turno, 'Confirmado');
         assert.equal(registros.get(31).medico_confirmacion, 1001);
         assert.equal((await pedir('PATCH', '/31/reprogramar', { fecha_turno: '2027-10-21', hora_turno: '11:00' }, tokenMedico)).status, 200);
         assert.equal(registros.get(31).fecha_turno, '2027-10-21');
+        assert.equal(registros.get(31).estado_turno, 'Reservado');
+        assert.equal(registros.get(31).medico_confirmacion, null);
         assert.equal((await pedir('DELETE', '/31', undefined, tokenMedico)).status, 403);
         assert.equal((await pedir('POST', '', { ...datos, fecha_turno: '2027-10-22' }, tokenMedico)).status, 403);
 

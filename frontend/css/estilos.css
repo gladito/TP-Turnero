@@ -9,7 +9,11 @@ h2 { font-size: 1.1rem; margin: 0; }
 .subtitulo, .nota { color: var(--muted); }
 .login-page { display: grid; place-items: center; min-height: 100vh; padding: 24px; background: radial-gradient(ellipse at top left, #deeeea, transparent 65%), var(--fondo); }
 .login-card { width: 100%; max-width: 440px; padding: 40px; border: 1px solid var(--borde); border-radius: 20px; background: white; box-shadow: 0 18px 60px #182e3b0c; }
-.login-card h1 { margin-top: 30px; }
+.login-card h1 { margin-top: 20px; }
+.tabs-auth { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 18px; }
+.tabs-auth button { background: #f3f6f8; color: var(--texto); border: 1px solid var(--borde); padding: 8px 10px; font-size: .8rem; }
+.tabs-auth button.activo { background: var(--primario); color: white; border-color: var(--primario); }
+.enlace-boton { display: inline-block; width: 100%; text-align: center; text-decoration: none; border-radius: 8px; background: var(--primario); color: white; padding: 11px 18px; font-weight: 600; margin-top: 18px; }
 label { display: block; font-size: .9rem; font-weight: 600; margin: 20px 0 7px; }
 input, select { width: 100%; border: 1px solid #b9c9cf; border-radius: 8px; padding: 12px; font: inherit; background: #fff; color: var(--texto); }
 input[readonly] { background: #eef3f5; color: var(--muted); }

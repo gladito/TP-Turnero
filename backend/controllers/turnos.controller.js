@@ -5,8 +5,8 @@ function responderError(res, error) {
     if (error.code === 'TURNO_CANCELADO') {
         return res.status(400).json({ error: 'No se puede modificar un turno que ya fue cancelado' });
     }
-    if (error.code === 'TURNO_SUPERPUESTO') {
-        return res.status(400).json({ error: 'El paciente ya tiene un turno asignado en esa fecha y horario' });
+    if (['TURNO_SUPERPUESTO', 'EQUIPO_SUPERPUESTO', 'DISPONIBILIDAD_SUPERPUESTA', 'MEDICO_SUPERPUESTO'].includes(error.code)) {
+        return res.status(400).json({ error: error.message });
     }
     if (['ER_NO_REFERENCED_ROW_2', 'ER_NO_REFERENCED_ROW'].includes(error.code)) {
         return res.status(400).json({ error: 'Alguno de los datos relacionados no existe' });

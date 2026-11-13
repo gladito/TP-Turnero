@@ -26,6 +26,11 @@ window.API = (() => {
     }
     return Object.freeze({
         login: (email, password) => solicitar('/auth/login', { method: 'POST', body: { email, password }, protegida: false }),
+        registrarPaciente: (datos) => solicitar('/auth/registro/paciente', { method: 'POST', body: datos, protegida: false }),
+        registrarMedico: (datos) => solicitar('/auth/registro/medico', { method: 'POST', body: datos, protegida: false }),
+        verificarEmail: (token) => solicitar(`/auth/verificar-email?token=${encodeURIComponent(token)}`, { protegida: false }),
+        recuperarPassword: (email) => solicitar('/auth/recuperar-password', { method: 'POST', body: { email }, protegida: false }),
+        restablecerPassword: (token, password) => solicitar('/auth/restablecer-password', { method: 'POST', body: { token, password }, protegida: false }),
         obtenerTurnos: () => solicitar('/turnos'),
         obtenerTurno: (id) => solicitar(`/turnos/${encodeURIComponent(id)}`),
         crearTurno: (datos) => solicitar('/turnos', { method: 'POST', body: datos }),

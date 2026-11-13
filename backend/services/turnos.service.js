@@ -32,26 +32,46 @@ function asegurarNoCancelado(turno) {
     }
 }
 
-// Validación nueva (Parcial 2): evita que un mismo paciente tenga dos turnos activos en la misma fecha y horario.
-async function verificarSuperposicionPaciente(dniPaciente, fechaTurno, horaTurno, idTurnoExcluir = null) {
+// Validación (Parcial 2 + TP): evita que paciente, equipo, disponibilidad o médico tengan dos turnos activos en la misma fecha y horario.
+async function verificarSuperposicionAgenda(datosAgenda, idTurnoExcluir = null) {
+    const {
+        dni_paciente: dniPaciente,
+        fecha_turno: fechaTurno,
+        hora_turno: horaTurno,
+        id_equipo: idEquipo = null,
+        id_disponibilidad: idDisponibilidad = null,
+        medico_confirmacion: medicoConfirmacion = null
+    } = datosAgenda;
+
     const turnos = await obtenerTodos();
     const fechaBuscada = normalizarFecha(fechaTurno);
     const horaBuscada = normalizarHora(horaTurno);
 
-    const superpuesto = turnos.some((t) => {
-        if (idTurnoExcluir !== null && Number(t.id_turno) === Number(idTurnoExcluir)) return false;
-        if (String(t.estado_turno || "").trim().toLowerCase() === "cancelado") return false;
-        return (
-            Number(t.dni_paciente) === Number(dniPaciente) &&
-            normalizarFecha(t.fecha_turno) === fechaBuscada &&
-            normalizarHora(t.hora_turno) === horaBuscada
-        );
-    });
+    for (const t of turnos) {
+        if (idTurnoExcluir !== null && Number(t.id_turno) === Number(idTurnoExcluir)) continue;
+        if (String(t.estado_turno || "").trim().toLowerCase() === "cancelado") continue;
+        if (normalizarFecha(t.fecha_turno) !== fechaBuscada || normalizarHora(t.hora_turno) !== horaBuscada) continue;
 
-    if (superpuesto) {
-        const error = new Error("El paciente ya tiene un turno asignado en esa fecha y horario");
-        error.code = "TURNO_SUPERPUESTO";
-        throw error;
+        if (dniPaciente !== null && dniPaciente !== undefined && Number(t.dni_paciente) === Number(dniPaciente)) {
+            const error = new Error("El paciente ya tiene un turno asignado en esa fecha y horario");
+            error.code = "TURNO_SUPERPUESTO";
+            throw error;
+        }
+        if (idEquipo !== null && idEquipo !== undefined && t.id_equipo !== null && Number(t.id_equipo) === Number(idEquipo)) {
+            const error = new Error("El equipo ya tiene otro turno asignado en esa fecha y horario");
+            error.code = "EQUIPO_SUPERPUESTO";
+            throw error;
+        }
+        if (idDisponibilidad !== null && idDisponibilidad !== undefined && t.id_disponibilidad !== null && Number(t.id_disponibilidad) === Number(idDisponibilidad)) {
+            const error = new Error("El médico/disponibilidad ya tiene otro turno asignado en esa fecha y horario");
+            error.code = "DISPONIBILIDAD_SUPERPUESTA";
+            throw error;
+        }
+        if (medicoConfirmacion !== null && medicoConfirmacion !== undefined && t.medico_confirmacion !== null && Number(t.medico_confirmacion) === Number(medicoConfirmacion)) {
+            const error = new Error("El médico ya tiene otro turno asignado en esa fecha y horario");
+            error.code = "MEDICO_SUPERPUESTO";
+            throw error;
+        }
     }
 }
 
@@ -98,7 +118,14 @@ async function crear(datos) {
     } = datos;
 
     if (String(estado_turno || "").trim().toLowerCase() !== "cancelado") {
-        await verificarSuperposicionPaciente(dni_paciente, fecha_turno, hora_turno);
+        await verificarSuperposicionAgenda({
+            dni_paciente,
+            fecha_turno,
+            hora_turno,
+            id_equipo,
+            id_disponibilidad,
+            medico_confirmacion
+        });
     }
 
     const [resultado] = await pool.query(`
@@ -144,12 +171,22 @@ async function actualizar(idTurno, datos, parcial = false) {
     const dniFinal = Object.hasOwn(datos, "dni_paciente") ? datos.dni_paciente : turnoActual.dni_paciente;
     const fechaFinal = Object.hasOwn(datos, "fecha_turno") ? datos.fecha_turno : turnoActual.fecha_turno;
     const horaFinal = Object.hasOwn(datos, "hora_turno") ? datos.hora_turno : turnoActual.hora_turno;
+    const equipoFinal = Object.hasOwn(datos, "id_equipo") ? datos.id_equipo : (parcial ? turnoActual.id_equipo : null);
+    const dispFinal = Object.hasOwn(datos, "id_disponibilidad") ? datos.id_disponibilidad : (parcial ? turnoActual.id_disponibilidad : null);
+    const medicoFinal = Object.hasOwn(datos, "medico_confirmacion") ? datos.medico_confirmacion : (parcial ? turnoActual.medico_confirmacion : null);
     const estadoFinal = Object.hasOwn(datos, "estado_turno") ? datos.estado_turno : (parcial ? turnoActual.estado_turno : null);
 
-    // Verifica superposición si se modifica fecha, hora o paciente en un turno no cancelado.
-    const cambiaAgenda = !parcial || Object.hasOwn(datos, "dni_paciente") || Object.hasOwn(datos, "fecha_turno") || Object.hasOwn(datos, "hora_turno");
+    // Verifica superposición si se modifica fecha, hora, paciente, equipo o médico en un turno no cancelado.
+    const cambiaAgenda = !parcial || Object.hasOwn(datos, "dni_paciente") || Object.hasOwn(datos, "fecha_turno") || Object.hasOwn(datos, "hora_turno") || Object.hasOwn(datos, "id_equipo") || Object.hasOwn(datos, "id_disponibilidad") || Object.hasOwn(datos, "medico_confirmacion");
     if (cambiaAgenda && String(estadoFinal || "").trim().toLowerCase() !== "cancelado") {
-        await verificarSuperposicionPaciente(dniFinal, fechaFinal, horaFinal, idTurno);
+        await verificarSuperposicionAgenda({
+            dni_paciente: dniFinal,
+            fecha_turno: fechaFinal,
+            hora_turno: horaFinal,
+            id_equipo: equipoFinal,
+            id_disponibilidad: dispFinal,
+            medico_confirmacion: medicoFinal
+        }, idTurno);
     }
 
     const valores = campos.map((campo) => datos[campo] === undefined ? null : datos[campo]);
@@ -161,17 +198,33 @@ async function actualizar(idTurno, datos, parcial = false) {
 }
 
 // Mejora funcional: Reprogramar fecha y hora de un turno existente.
+// Regla de negocio del TP: si el turno estaba Confirmado y se modifica su fecha u hora, vuelve al estado Reservado.
 async function reprogramar(idTurno, fechaTurno, horaTurno) {
     const turnoActual = await obtenerPorId(idTurno);
     if (!turnoActual) return null;
 
     asegurarNoCancelado(turnoActual);
-    await verificarSuperposicionPaciente(turnoActual.dni_paciente, fechaTurno, horaTurno, idTurno);
+    await verificarSuperposicionAgenda({
+        dni_paciente: turnoActual.dni_paciente,
+        fecha_turno: fechaTurno,
+        hora_turno: horaTurno,
+        id_equipo: turnoActual.id_equipo,
+        id_disponibilidad: turnoActual.id_disponibilidad,
+        medico_confirmacion: turnoActual.medico_confirmacion
+    }, idTurno);
 
-    await pool.query(
-        "UPDATE turno SET fecha_turno = ?, hora_turno = ? WHERE id_turno = ?",
-        [fechaTurno, horaTurno, idTurno]
-    );
+    const eraConfirmado = String(turnoActual.estado_turno || "").trim().toLowerCase() === "confirmado";
+    if (eraConfirmado) {
+        await pool.query(
+            "UPDATE turno SET fecha_turno = ?, hora_turno = ?, estado_turno = ?, fecha_confirmacion = ?, medico_confirmacion = ? WHERE id_turno = ?",
+            [fechaTurno, horaTurno, "Reservado", null, null, idTurno]
+        );
+    } else {
+        await pool.query(
+            "UPDATE turno SET fecha_turno = ?, hora_turno = ? WHERE id_turno = ?",
+            [fechaTurno, horaTurno, idTurno]
+        );
+    }
     return obtenerPorId(idTurno);
 }
 

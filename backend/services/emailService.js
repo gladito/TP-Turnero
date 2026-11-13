@@ -36,10 +36,15 @@ async function obtenerTransporter() {
 async function enviarCorreo({ to, subject, text, html }) {
     const transporte = await obtenerTransporter();
     const info = await transporte.sendMail({ to, subject, text, html });
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+
+    console.log('Correo enviado al servicio de pruebas.');
+    console.log('Asunto:', subject);
+    console.log('Vista previa:', previewUrl);
 
     return {
         messageId: info.messageId,
-        previewUrl: nodemailer.getTestMessageUrl(info)
+        previewUrl
     };
 }
 

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de cuenta | Gestión de turnos</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <script src="js/api.js" defer></script>
+</head>
+<body class="login-page">
+    <main class="login-card">
+        <span class="marca">GT / GESTIÓN DE TURNOS</span>
+
+        <section id="seccion-verificacion">
+            <h1 id="titulo-verif">Verificación de correo</h1>
+            <p id="estado-verif" class="mensaje" role="status">Verificando tu enlace…</p>
+        </section>
+
+        <section id="seccion-restablecer" hidden>
+            <h1>Restablecer contraseña</h1>
+            <p class="subtitulo">Ingresá tu nueva contraseña (mínimo 8 caracteres).</p>
+            <form id="form-restablecer">
+                <label for="nueva-password">Nueva contraseña</label>
+                <input id="nueva-password" name="password" type="password" minlength="8" required>
+                <p id="msg-restablecer" class="mensaje" role="status"></p>
+                <button id="btn-restablecer" type="submit">Guardar nueva contraseña</button>
+            </form>
+        </section>
+
+        <a href="index.html" class="enlace-boton">Volver al inicio de sesión</a>
+    </main>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            const modo = params.get('modo');
+            const estadoVerif = document.getElementById('estado-verif');
+            const seccionVerif = document.getElementById('seccion-verificacion');
+            const seccionRest = document.getElementById('seccion-restablecer');
+
+            if (!token) {
+                estadoVerif.classList.add('error');
+                estadoVerif.textContent = 'No se recibió un token en el enlace.';
+                return;
+            }
+
+            if (modo === 'recuperar') {
+                seccionVerif.hidden = true;
+                seccionRest.hidden = false;
+                const form = document.getElementById('form-restablecer');
+                const msg = document.getElementById('msg-restablecer');
+                const btn = document.getElementById('btn-restablecer');
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    msg.textContent = '';
+                    msg.classList.remove('error');
+                    btn.disabled = true;
+                    try {
+                        const res = await API.restablecerPassword(token, form.password.value);
+                        msg.textContent = res.mensaje;
+                        form.reset();
+                    } catch (err) {
+                        msg.classList.add('error');
+                        msg.textContent = err.message;
+                    } finally {
+                        btn.disabled = false;
+                    }
+                });
+                return;
+            }
+
+            try {
+                const res = await API.verificarEmail(token);
+                estadoVerif.textContent = res.mensaje;
+            } catch (err) {
+                estadoVerif.classList.add('error');
+                estadoVerif.textContent = err.message;
+            }
+        });
+    </script>
+</body>
+</html>

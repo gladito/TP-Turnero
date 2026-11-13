@@ -34,6 +34,35 @@ function horaValida(valor) {
     return typeof valor === 'string' && /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(valor);
 }
 
+// Validación de horario de atención del centro: Lun a Vie 08:00 a 20:00, Sáb 08:00 a 14:00, Dom cerrado.
+function diaSemanaUtc(fechaStr) {
+    return new Date(`${fechaStr}T00:00:00.000Z`).getUTCDay();
+}
+
+function horarioCentroValido(horaStr, fechaStr = null) {
+    if (!horaValida(horaStr)) return { ok: false, error: 'hora_turno debe tener el formato HH:MM o HH:MM:SS' };
+    const partes = horaStr.split(':').map(Number);
+    const segundosTotales = partes[0] * 3600 + partes[1] * 60 + (partes[2] || 0);
+    const minApertura = 8 * 3600; // 08:00:00
+    const maxLv = 20 * 3600;      // 20:00:00
+    const maxSab = 14 * 3600;     // 14:00:00
+
+    if (fechaStr && fechaValida(fechaStr)) {
+        const dia = diaSemanaUtc(fechaStr);
+        if (dia === 0) {
+            return { ok: false, error: 'El centro permanece cerrado los domingos' };
+        }
+        if (dia === 6 && (segundosTotales < minApertura || segundosTotales > maxSab)) {
+            return { ok: false, error: 'Los sábados el horario de atención es de 08:00 a 14:00' };
+        }
+    }
+
+    if (segundosTotales < minApertura || segundosTotales > maxLv) {
+        return { ok: false, error: 'El horario de atención de lunes a viernes es de 08:00 a 20:00' };
+    }
+    return { ok: true };
+}
+
 function validarIdTurno(req, res, next) {
     if (!enteroPositivo(req.params.id)) return res.status(400).json({ error: 'El ID debe ser un entero positivo dentro del rango INT' });
     next();
@@ -56,8 +85,12 @@ function validarDatos(parcial) {
             if (campo === 'fecha_turno') {
                 if (!fechaValida(valor)) return fallo('fecha_turno debe ser una fecha real YYYY-MM-DD');
                 if (!fechaNoPasada(valor)) return fallo('No se pueden asignar ni reprogramar turnos en fechas anteriores a la actual');
+                if (diaSemanaUtc(valor) === 0) return fallo('El centro permanece cerrado los domingos');
             }
-            if (campo === 'hora_turno' && !horaValida(valor)) return fallo('hora_turno debe tener el formato HH:MM o HH:MM:SS');
+            if (campo === 'hora_turno') {
+                const checkHora = horarioCentroValido(valor, typeof datos.fecha_turno === 'string' ? datos.fecha_turno : null);
+                if (!checkHora.ok) return fallo(checkHora.error);
+            }
             if (campo === 'fecha_confirmacion' && (typeof valor !== 'string' || !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(valor) || !fechaValida(valor.slice(0, 10)) || !horaValida(valor.slice(11)))) return fallo('fecha_confirmacion debe ser una fecha real YYYY-MM-DD HH:MM:SS o null');
             const limite = campo === 'medio_solicitado' ? 50 : campo === 'estado_turno' ? 30 : null;
             if (limite && (typeof valor !== 'string' || [...valor].length > limite)) return fallo(`${campo} debe ser texto de hasta ${limite} caracteres o null`);
@@ -80,12 +113,15 @@ function validarReprogramacion(req, res, next) {
     }
     if (!fechaValida(datos.fecha_turno)) return fallo('fecha_turno debe ser una fecha real YYYY-MM-DD');
     if (!fechaNoPasada(datos.fecha_turno)) return fallo('No se pueden asignar ni reprogramar turnos en fechas anteriores a la actual');
-    if (!horaValida(datos.hora_turno)) return fallo('hora_turno debe tener el formato HH:MM o HH:MM:SS');
+    if (diaSemanaUtc(datos.fecha_turno) === 0) return fallo('El centro permanece cerrado los domingos');
+    const checkHora = horarioCentroValido(datos.hora_turno, datos.fecha_turno);
+    if (!checkHora.ok) return fallo(checkHora.error);
     next();
 }
 
 module.exports = {
     CAMPOS_EDITABLES,
+    horarioCentroValido,
     validarIdTurno,
     validarCreacionTurno: validarDatos(false),
     validarReemplazoTurno: validarDatos(false),
