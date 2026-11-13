@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Gestión | Gestión de turnos</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+    <script src="../js/api.js" defer></script>
+    <script src="../js/dashboard.js" defer></script>
+</head>
+<body>
+    <div id="panel" hidden>
+        <header class="cabecera">
+            <a class="marca" href="dashboard.html">GT / GESTIÓN DE TURNOS</a>
+            <div class="sesion">
+                <span id="badge-rol" class="badge-rol"></span>
+                <span id="usuario"></span>
+                <button id="salir" class="secundario" type="button">Cerrar sesión</button>
+            </div>
+        </header>
+        <main class="dashboard">
+            <p id="etiqueta-rol" class="etiqueta">PANEL DE GESTIÓN</p>
+            <nav class="menu-dashboard" aria-label="Secciones del panel">
+                <button id="menu-inicio" type="button" class="activo" aria-current="page" aria-controls="seccion-inicio">Inicio</button>
+                <button id="menu-turnos" type="button" aria-controls="seccion-turnos">Turnos</button>
+            </nav>
+
+            <section id="seccion-inicio" class="bienvenida" aria-labelledby="titulo-inicio">
+                <h1 id="titulo-inicio">Bienvenido al panel</h1>
+                <p id="descripcion-rol" class="subtitulo">Seleccioná Turnos en el menú para consultar la agenda del centro y gestionar tus operaciones según tu perfil.</p>
+            </section>
+
+            <section id="seccion-turnos" aria-label="Turnos del centro" hidden>
+                <div class="titulo-panel">
+                    <div>
+                        <h1 id="titulo-turnos">Turnos del centro</h1>
+                        <p id="subtitulo-turnos" class="subtitulo">Consultá la agenda y el estado de cada turno.</p>
+                    </div>
+                    <button id="actualizar" type="button">Actualizar turnos</button>
+                </div>
+
+                <p id="mensaje-accion" class="mensaje-alerta" role="alert" aria-live="assertive"></p>
+
+                <div class="acciones-grid">
+                    <!-- Formulario para Crear / Reservar Turno (Admin y Paciente) -->
+                    <section id="card-crear-turno" class="form-card" aria-labelledby="titulo-crear-turno" hidden>
+                        <h2 id="titulo-crear-turno">Asignar / Reservar nuevo turno</h2>
+                        <form id="form-crear-turno" class="form-grid" novalidate>
+                            <div>
+                                <label for="crear-dni">DNI del Paciente</label>
+                                <input id="crear-dni" name="dni_paciente" type="number" min="1" placeholder="Ej: 30100101" required>
+                            </div>
+                            <div>
+                                <label for="crear-practica">Práctica médica</label>
+                                <select id="crear-practica" name="id_practica" required>
+                                    <option value="1">1 - Consulta clínica</option>
+                                    <option value="2">2 - Control general</option>
+                                    <option value="3">3 - Electrocardiograma</option>
+                                    <option value="4">4 - Ecocardiograma</option>
+                                    <option value="5">5 - Control pediátrico</option>
+                                    <option value="6">6 - Consulta traumatológica</option>
+                                    <option value="8">8 - Control ginecológico</option>
+                                    <option value="10">10 - Consulta dermatológica</option>
+                                    <option value="12">12 - Control oftalmológico</option>
+                                    <option value="14">14 - Ecografía abdominal</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="crear-fecha">Fecha del turno</label>
+                                <input id="crear-fecha" name="fecha_turno" type="date" required>
+                            </div>
+                            <div>
+                                <label for="crear-hora">Hora del turno</label>
+                                <input id="crear-hora" name="hora_turno" type="time" required>
+                            </div>
+                            <div>
+                                <label for="crear-medio">Medio solicitado</label>
+                                <select id="crear-medio" name="medio_solicitado">
+                                    <option value="Web">Web</option>
+                                    <option value="Teléfono">Teléfono</option>
+                                    <option value="WhatsApp">WhatsApp</option>
+                                </select>
+                            </div>
+                            <div class="form-acciones">
+                                <button id="btn-crear-turno" type="submit">Guardar turno</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Formulario para Reprogramar Turno (Admin y Médico) -->
+                    <section id="card-reprogramar-turno" class="form-card" aria-labelledby="titulo-reprogramar-turno" hidden>
+                        <h2 id="titulo-reprogramar-turno">Reprogramar turno existente</h2>
+                        <form id="form-reprogramar-turno" class="form-grid" novalidate>
+                            <div>
+                                <label for="reprog-id">ID del Turno</label>
+                                <input id="reprog-id" name="id_turno" type="number" min="1" placeholder="Ej: 3" required>
+                            </div>
+                            <div>
+                                <label for="reprog-fecha">Nueva fecha</label>
+                                <input id="reprog-fecha" name="fecha_turno" type="date" required>
+                            </div>
+                            <div>
+                                <label for="reprog-hora">Nueva hora</label>
+                                <input id="reprog-hora" name="hora_turno" type="time" required>
+                            </div>
+                            <div class="form-acciones">
+                                <button id="btn-reprogramar-turno" type="submit">Reprogramar turno</button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+
+                <section class="tabla-card" aria-labelledby="titulo-listado">
+                    <div class="tabla-titulo">
+                        <h2 id="titulo-listado">Listado de turnos</h2>
+                        <span id="cantidad" class="contador">0 turnos</span>
+                    </div>
+                    <p id="estado" class="mensaje" role="status" aria-live="polite"></p>
+                    <div class="tabla-scroll" tabindex="0" role="region" aria-label="Tabla de turnos" aria-busy="false" id="region-tabla">
+                        <table>
+                            <caption class="solo-lectores">Turnos registrados, ordenados por fecha y hora</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Fecha</th>
+                                    <th scope="col">Hora</th>
+                                    <th scope="col">DNI paciente</th>
+                                    <th scope="col">Práctica</th>
+                                    <th scope="col">Equipo</th>
+                                    <th scope="col">Disponibilidad</th>
+                                    <th scope="col">Medio</th>
+                                    <th scope="col">Estado</th>
+                                    <th scope="col">Confirmación</th>
+                                    <th scope="col">Médico confirmación</th>
+                                    <th scope="col">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="turnos"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

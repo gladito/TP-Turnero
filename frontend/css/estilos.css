@@ -1,0 +1,73 @@
+:root { color-scheme: light; --fondo: #f3f6f8; --texto: #182e3b; --muted: #61717d; --primario: #176b65; --borde: #dce5e9; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fondo); color: var(--texto); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5; }
+[hidden] { display: none !important; }
+h1, h2, p { margin-top: 0; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); line-height: 1.2; letter-spacing: -.04em; margin-bottom: 14px; }
+h2 { font-size: 1.1rem; margin: 0; }
+.marca { color: var(--primario); font-size: .78rem; font-weight: 800; letter-spacing: .1em; text-decoration: none; }
+.subtitulo, .nota { color: var(--muted); }
+.login-page { display: grid; place-items: center; min-height: 100vh; padding: 24px; background: radial-gradient(ellipse at top left, #deeeea, transparent 65%), var(--fondo); }
+.login-card { width: 100%; max-width: 440px; padding: 40px; border: 1px solid var(--borde); border-radius: 20px; background: white; box-shadow: 0 18px 60px #182e3b0c; }
+.login-card h1 { margin-top: 30px; }
+label { display: block; font-size: .9rem; font-weight: 600; margin: 20px 0 7px; }
+input, select { width: 100%; border: 1px solid #b9c9cf; border-radius: 8px; padding: 12px; font: inherit; background: #fff; color: var(--texto); }
+input[readonly] { background: #eef3f5; color: var(--muted); }
+button { border: 1px solid transparent; border-radius: 8px; background: var(--primario); color: white; padding: 11px 18px; font: inherit; font-weight: 600; cursor: pointer; }
+button:hover { background: #10544f; }
+button:disabled { opacity: .6; cursor: not-allowed; }
+:focus-visible { outline: 3px solid #dfad36; outline-offset: 3px; }
+.login-card button { width: 100%; }
+.nota { text-align: center; font-size: .8rem; margin: 24px 0 0; }
+.mensaje { padding: 0 24px; color: var(--muted); }
+.mensaje:empty { display: none; }
+.login-card .mensaje { padding: 0; margin: 16px 0; }
+.login-card form button { margin-top: 20px; }
+.error { color: #a32626; }
+.cabecera { min-height: 84px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 2.5%; border-bottom: 1px solid var(--borde); background: white; }
+.sesion { display: flex; align-items: center; gap: 14px; font-size: .88rem; overflow-wrap: anywhere; }
+.badge-rol { padding: 4px 12px; border-radius: 20px; background: #e8f3ef; color: var(--primario); font-weight: 700; font-size: .76rem; letter-spacing: .05em; }
+.secundario { background: white; color: var(--texto); border-color: var(--borde); white-space: nowrap; }
+.secundario:hover { background: #eaf1f3; }
+.dashboard { max-width: 98%; width: 100%; margin: 0 auto; padding: 32px 1.5%; }
+.menu-dashboard { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; padding-bottom: 14px; border-bottom: 1px solid var(--borde); }
+.menu-dashboard button { background: transparent; color: var(--texto); border-color: var(--borde); }
+.menu-dashboard button:hover { background: #e8f3ef; }
+.menu-dashboard button.activo { background: var(--primario); border-color: var(--primario); color: white; }
+.bienvenida { padding: clamp(22px, 4vw, 40px); background: white; border: 1px solid var(--borde); border-radius: 14px; }
+.bienvenida p { margin-bottom: 0; }
+.etiqueta { color: var(--primario); font-size: .75rem; letter-spacing: .14em; font-weight: 700; }
+.titulo-panel { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 22px; }
+.titulo-panel p { margin-bottom: 0; }
+.mensaje-alerta { padding: 14px 18px; border-radius: 10px; font-weight: 600; margin-bottom: 20px; border: 1px solid var(--borde); background: #e8f3ef; color: var(--primario); }
+.mensaje-alerta:empty { display: none; }
+.mensaje-alerta.error { background: #fdecec; border-color: #f3c2c2; color: #a32626; }
+.acciones-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 24px; }
+.form-card { background: white; border: 1px solid var(--borde); border-radius: 14px; padding: 22px 24px; }
+.form-card h2 { margin-bottom: 14px; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; align-items: end; }
+.form-grid label { margin: 0 0 6px; font-size: .82rem; }
+.form-grid input, .form-grid select { padding: 9px 11px; font-size: .88rem; }
+.form-acciones { display: flex; align-items: flex-end; }
+.form-acciones button { width: 100%; padding: 10px 14px; font-size: .88rem; }
+.tabla-card { background: white; border: 1px solid var(--borde); border-radius: 14px; overflow: hidden; }
+.tabla-titulo { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; gap: 12px; }
+.contador { border-radius: 20px; padding: 4px 12px; background: #e8f3ef; color: var(--primario); font-size: .8rem; white-space: nowrap; }
+.tabla-scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; text-align: left; font-size: .82rem; }
+th { padding: 11px 10px; font-size: .73rem; color: var(--muted); background: #f7f9fa; font-weight: 600; line-height: 1.25; }
+td { padding: 11px 10px; border-top: 1px solid #eaf0f2; white-space: nowrap; }
+tbody tr:hover { background: #f8fbfa; }
+.estado-turno { font-weight: 600; color: var(--primario); }
+.estado-cancelado { color: #a32626; }
+.acciones-celda { display: flex; flex-wrap: nowrap; gap: 5px; align-items: center; }
+.btn-accion { padding: 5px 9px; font-size: .75rem; border-radius: 6px; white-space: nowrap; }
+.btn-confirmar { background: #176b65; }
+.btn-reprogramar { background: #265985; }
+.btn-reprogramar:hover { background: #1c4466; }
+.btn-cancelar { background: #b25900; }
+.btn-cancelar:hover { background: #8a4500; }
+.btn-eliminar { background: #a32626; }
+.btn-eliminar:hover { background: #7d1c1c; }
+.solo-lectores { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (max-width: 640px) { .login-card { padding: 28px; } .cabecera, .titulo-panel { flex-direction: column; align-items: flex-start; } .sesion { width: 100%; justify-content: space-between; } .dashboard { padding-top: 28px; } .titulo-panel button { width: 100%; } }
